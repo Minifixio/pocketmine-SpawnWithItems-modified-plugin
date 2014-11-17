@@ -1,5 +1,6 @@
 <?php
 namespace LDX\SpawnWithItems;
+
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
@@ -9,9 +10,11 @@ use pocketmine\utils\TextFormat;
 use pocketmine\item\Item;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerRespawnEvent;
+use pocketmine\inventory\Inventory;
+
 class Main extends PluginBase implements Listener {
   public function onLoad() {
-    $this->getLogger()->info(TextFormat::YELLOW . "Loading SpawnWithItems v2.0 by LDX...");
+    $this->getLogger()->info(TextFormat::YELLOW . "Loading SpawnWithItems v2.0 by LDX, modified by Minifixio...");
   }
   public function onEnable() {
     if(!file_exists($this->getDataFolder() . "config.yml")) {
@@ -38,6 +41,25 @@ class Main extends PluginBase implements Listener {
     if($event->getPlayer()->hasPermission("spawnwithitems") || $event->getPlayer()->hasPermission("spawnwithitems.receive")) {
       foreach($this->itemdata as $i) {
         $item = new Item($i[0],$i[1],$i[2]);
+        
+        // Modified here to only a stuff if necessary
+        $inventory = $event->getPlayer()->getInventory();       
+
+        $previousItems = $inventory->all($item);
+        
+        $previousItemCount = 0;
+        foreach($previousItems as $previousItem){
+        	$previousItemCount += $previousItem->getCount();
+        }
+        
+        if($previousItemCount > 0){
+        	if($previousItemCount < $i[2]){
+        		$item->setCount($i[2] - $previousItemCount);
+        	}
+        	else{
+        		$item->setCount(0);
+        	}
+        }
         $event->getPlayer()->getInventory()->addItem($item);
       }
     }
